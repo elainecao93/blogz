@@ -3,26 +3,26 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://get-it-done:beproductive@localhost:8889/get-it-done'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://build-a-blog:hello@localhost:8889/build-a-blog'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
 class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
-    text = db.Column(db.String(4000))
+    content = db.Column(db.String(4000))
 
-    def __init__(self, title, text=""):
+    def __init__(self, title, content):
         self.title = title
-        self.text = text
+        self.content = content
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
 
     if request.method == "POST":
         title = request.form["title"]
-        text = request.form["text"]
-        new_post = Blog(title, text)
+        content = request.form["content"]
+        new_post = Blog(title, content)
         db.session.add(new_post)
         db.session.commit()
     
