@@ -16,15 +16,31 @@ class Blog(db.Model):
         self.title = title
         self.content = content
 
-@app.route('/', methods=['POST', 'GET'])
-def index():
+@app.route("/blog.html")
+def blog():
+    posts = Blog.query.all()
+    return render_template("blog.html", posts=posts)
+
+@app.route("/newpost.html", methods=["POST", "GET"])
+def newpost():
+
+    title = ""
+    text = ""
 
     if request.method == "POST":
         title = request.form["title"]
         content = request.form["content"]
-        new_post = Blog(title, content)
-        db.session.add(new_post)
-        db.session.commit()
+        if len(title) > 0 and len(text) > 0:
+            new_post = Blog(title, content)
+            db.session.add(new_post)
+            db.session.commit()
+            redirect("/") #TODO
+
+    error = not (request.args.get("error") is None)
+    return render_template("newpost.html", error=error, title=title, text=text)
+
+@app.route('/', methods=["POST", "GET"])
+def index():
     
     posts = Blog.query.all()
 
