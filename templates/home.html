@@ -2,4 +2,10 @@
 
 {% block content %}
 
+{% for post in posts %}
+
+<p><a href="blog.html?id={{post.id}}">{{post.title}}</a></p>
+
+{% endfor %}
+
 {% endblock %}

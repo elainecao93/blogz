@@ -18,6 +18,10 @@ class Blog(db.Model):
 
 @app.route("/blog.html")
 def blog():
+    blog_id = request.args.get("id")
+    if blog_id is not None:
+        post = Blog.query.filter_by(id=blog_id).first()
+        return render_template("post.html", post=post)
     posts = Blog.query.all()
     return render_template("blog.html", posts=posts)
 
@@ -25,19 +29,19 @@ def blog():
 def newpost():
 
     title = ""
-    text = ""
+    content = ""
 
     if request.method == "POST":
         title = request.form["title"]
         content = request.form["content"]
-        if len(title) > 0 and len(text) > 0:
+        if len(title) > 0 and len(content) > 0:
             new_post = Blog(title, content)
             db.session.add(new_post)
             db.session.commit()
-            redirect("/") #TODO
-
-    error = not (request.args.get("error") is None)
-    return render_template("newpost.html", error=error, title=title, text=text)
+            return redirect("/blog.html?id="+str(new_post.id))
+    
+    error = (request.method == "POST")
+    return render_template("newpost.html", error=error, title=title, content=content)
 
 @app.route('/', methods=["POST", "GET"])
 def index():
@@ -47,8 +51,16 @@ def index():
     return render_template("home.html", posts=posts)
 
 if __name__ == "__main__":
+    
+    #Make fresh/empty databases each time the program runs, to make it easier to test
     db.drop_all()
     db.create_all()
     db.session.commit()
+
+    if (True): #basic test cases. Set to false when running
+        db.session.add(Blog("sample title 1", "sample text 1"))
+        db.session.commit()
+        db.session.add(Blog("sample title 2", "sample text 2. The quick brown fox jumps over the lazy dog."))
+        db.session.commit()
 
     app.run()

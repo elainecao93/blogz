@@ -7,12 +7,12 @@ The title and content can't both be empty.
 {% endif %}
 
 <h2>Make a new post</h2>
-<form action ="/" method="POST">
+<form action ="newpost.html" method="POST">
     Title:
     <input type="text" name="title" value="{{title}}"/>
     <br>
     <!--<textarea name="content" form="usrform">Enter text here</textarea>-->
-    <input type="text" name="content" value="{{text}}"/>
+    <input type="text" name="content" value="{{content}}"/>
     <br>
     <input type="submit" value="Submit"/>
 </form>
