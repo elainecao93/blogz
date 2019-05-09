@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -48,13 +48,20 @@ def newpost():
     if request.method == "POST":
         title = request.form["title"]
         content = request.form["content"]
+
         if len(title) > 0 and len(content) > 0:
-            new_post = Blog(title, content) #TODO add user tag
+            username = session["username"]
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                #TODO fix this error (though it shouldn't exist?)
+                ""
+            new_post = Blog(title, content, user.id)
             db.session.add(new_post)
             db.session.commit()
             return redirect("/blog.html?id="+str(new_post.id))
     
-    error = (request.method == "POST")
+    if request.method == "POST":
+        flash("You must enter something not blank for both the title and the blog content.")
     return render_template("newpost.html", error=error, title=title, content=content)
 
 @app.route("/login.html", methods=["POST", "GET"])
@@ -67,11 +74,11 @@ def login():
         existing_user = User.query.filter_by(username=username).first()
 
         if not existing_user:
-            #TODO flask message for this error
+            flash("Username doesn't match a registered user.")
             return render_template("login.html", username="")
         
         if not existing_user.password == password:
-            #TODO flash message for this error
+            flash("Password is incorrect.")
             return render_template("login.html" username=username)
 
 
@@ -87,15 +94,15 @@ def register():
 
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            #TODO flask message for this error
+            flash("That username already exists.")
             return render_template("register.html", username="")
         
         if len(username) == 0:
-            #TODO flash message for this error
+            flash("Your undername can't be blank.")
             return render_template("register.html", username="")
 
         if password != verify:
-            #TODO flash message for this error
+            flash("Your password fields don't match.")
             return render_template("register.html", username=username)
         
         new_user = User(username, password)
@@ -112,8 +119,8 @@ def logoff():
     del session["username"]
     redirect("/")
 
-@app.route("/blog.html", methods=["GET"]) #TODO fix this nonsense
-def blog():
+@app.route("/singleuser.html", methods=["GET"]) #TODO fix this nonsense
+def singleuser():
     posts = Blog.query.all()
     return ""
 
@@ -126,7 +133,8 @@ def index(): #TODO fix this nonsense
 
 @app.before_request()
 def validate():
-    #TODO
+    if "email" not in session and request.endpoint == "/newpost.html":
+        return redirect("/login.html")
 
 if __name__ == "__main__":
     
