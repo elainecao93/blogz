@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Register for my pretty blog</h2>
+
+<form action="register.html" method="POST">
+    Username: <input type="text" name="username" value="{{username}}">
+    <br>
+    Password: <input type="password" name="password">
+    <br>
+    Verify password: <input type="password" name ="verify">
+    <br>
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}
