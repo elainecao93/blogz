@@ -127,9 +127,9 @@ def logoff():
 @app.route('/', methods=["POST", "GET"])
 def index(): #TODO fix this nonsense
     
-    posts = Blog.query.all()
+    users = User.query.all()
 
-    return render_template("home.html", posts=posts)
+    return render_template("home.html", users=users)
 
 @app.before_request()
 def validate():

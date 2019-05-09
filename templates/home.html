@@ -2,9 +2,9 @@
 
 {% block content %}
 
-{% for post in posts %}
+{% for user in users %}
 
-<p><a href="blog.html?id={{post.id}}">{{post.title}}</a></p>
+<p><a href="blog.html?user={{user.id}}">{{user.username}}</a></p>
 
 {% endfor %}
 
