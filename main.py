@@ -8,6 +8,8 @@ app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 app.secret_key = "bronson"
 
+#TODO: Fix base.html to change when the user is logged in (also fix all functions to pass in that value)
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120))
@@ -133,8 +135,14 @@ def index(): #TODO fix this nonsense
 
 @app.before_request
 def validate():
-    if "email" not in session and request.endpoint == "/newpost.html":
+    unallowed_if_loggedout = ["/newpost.html", "/logoff.html"]
+    if "email" not in session and request.endpoint in unallowed_if_loggedout:
+        flash("Log in before trying to do that!")
         return redirect("/login.html")
+    unallowed_if_loggedin = ["/login.html", "/register.html"]
+    if "email" in session and request.endpoint in unallowed_if_loggedin:
+        flash("Log out before trying to do that!")
+        return redirect("/")
 
 if __name__ == "__main__":
     
