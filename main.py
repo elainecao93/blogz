@@ -36,6 +36,11 @@ def blog():
     if blog_id is not None:
         post = Blog.query.filter_by(id=blog_id).first()
         return render_template("post.html", post=post)
+    user_id = request.args.get("user")
+    if user_id is not None:
+        author = User.query.filter_by(id=user_id).first()
+        posts = Blog.query.filter_by(author_id=user_id).all()
+        return render_template("singleuser.html", author=author.id, posts=posts)
     posts = Blog.query.all()
     return render_template("blog.html", posts=posts)
 
@@ -118,11 +123,6 @@ def register():
 def logoff():
     del session["username"]
     redirect("/")
-
-@app.route("/singleuser.html", methods=["GET"]) #TODO fix this nonsense
-def singleuser():
-    posts = Blog.query.all()
-    return ""
 
 @app.route('/', methods=["POST", "GET"])
 def index(): #TODO fix this nonsense
