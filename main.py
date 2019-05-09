@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, flash
+from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120))
     password = db.Column(db.String(120))
-    blogs = db.relationship("Blog", backref="author_id")
+    blogs = db.relationship("Blog", backref="author")
 
     def __init__(self, username, password):
         self.username = username
@@ -23,9 +23,9 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     content = db.Column(db.String(4000))
-    author_id = db.Column(db.Integer, db.ForeignKey("user.id")
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
-    def __init__(self, title, content, author==None):
+    def __init__(self, title, content, author):
         self.title = title
         self.content = content
         self.author_id = author
@@ -40,7 +40,7 @@ def blog():
     if user_id is not None:
         author = User.query.filter_by(id=user_id).first()
         posts = Blog.query.filter_by(author_id=user_id).all()
-        return render_template("singleuser.html", author=author.id, posts=posts)
+        return render_template("singleuser.html", author=author.username, posts=posts)
     posts = Blog.query.all()
     return render_template("blog.html", posts=posts)
 
@@ -67,7 +67,7 @@ def newpost():
     
     if request.method == "POST":
         flash("You must enter something not blank for both the title and the blog content.")
-    return render_template("newpost.html", error=error, title=title, content=content)
+    return render_template("newpost.html", title=title, content=content)
 
 @app.route("/login.html", methods=["POST", "GET"])
 def login():
@@ -84,7 +84,7 @@ def login():
         
         if not existing_user.password == password:
             flash("Password is incorrect.")
-            return render_template("login.html" username=username)
+            return render_template("login.html", username=username)
 
 
     return render_template("login.html", username="")
@@ -122,7 +122,7 @@ def register():
 @app.route("/logoff.html", methods=["GET"])
 def logoff():
     del session["username"]
-    redirect("/")
+    return redirect("/")
 
 @app.route('/', methods=["POST", "GET"])
 def index(): #TODO fix this nonsense
@@ -131,7 +131,7 @@ def index(): #TODO fix this nonsense
 
     return render_template("home.html", users=users)
 
-@app.before_request()
+@app.before_request
 def validate():
     if "email" not in session and request.endpoint == "/newpost.html":
         return redirect("/login.html")
