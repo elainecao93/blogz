@@ -15,17 +15,27 @@
     </ul>
     {% endwith %}
 
-    <a href="/">Home</a>
+    <a href="/">Home</a> <br>
+
+    {% if user|length == 0 %}
 
     <a href="login.html">Login</a>
 
     <a href="register.html">Register</a>
+
+    <a href="blog.html">View entries</a>
+
+    {% else %}
+
+    Logged in as: {{user}}
 
     <a href="logoff.html">Logoff</a>
 
     <a href="blog.html">View entries</a>
         
     <a href="newpost.html">Make a new post</a>
+
+    {% endif %}
     
     <br>
 

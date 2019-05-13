@@ -8,8 +8,6 @@ app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 app.secret_key = "bronson"
 
-#TODO: Fix base.html to change when the user is logged in (also fix all functions to pass in that value)
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120))
@@ -32,19 +30,25 @@ class Blog(db.Model):
         self.content = content
         self.author_id = author
 
+def getUsername():
+    #Returns current username if exists. Empty string if not.
+    if "username" in session:
+        return session["username"]
+    return ""
+
 @app.route("/blog.html")
 def blog():
     blog_id = request.args.get("id")
     if blog_id is not None:
         post = Blog.query.filter_by(id=blog_id).first()
-        return render_template("post.html", post=post)
+        return render_template("post.html", post=post, user=getUsername())
     user_id = request.args.get("user")
     if user_id is not None:
         author = User.query.filter_by(id=user_id).first()
         posts = Blog.query.filter_by(author_id=user_id).all()
-        return render_template("singleuser.html", author=author.username, posts=posts)
+        return render_template("singleuser.html", author=author.username, posts=posts, user=getUsername())
     posts = Blog.query.all()
-    return render_template("blog.html", posts=posts)
+    return render_template("blog.html", posts=posts, user=getUsername())
 
 @app.route("/newpost.html", methods=["POST", "GET"])
 def newpost():
@@ -69,7 +73,7 @@ def newpost():
     
     if request.method == "POST":
         flash("You must enter something not blank for both the title and the blog content.")
-    return render_template("newpost.html", title=title, content=content)
+    return render_template("newpost.html", title=title, content=content, user=getUsername())
 
 @app.route("/login.html", methods=["POST", "GET"])
 def login():
@@ -82,14 +86,14 @@ def login():
 
         if not existing_user:
             flash("Username doesn't match a registered user.")
-            return render_template("login.html", username="")
+            return render_template("login.html", username="", user=getUsername())
         
         if not existing_user.password == password:
             flash("Password is incorrect.")
-            return render_template("login.html", username=username)
+            return render_template("login.html", username=username, user=getUsername())
 
 
-    return render_template("login.html", username="")
+    return render_template("login.html", username="", user=getUsername())
 
 @app.route("/register.html", methods=["POST", "GET"])
 def register():
@@ -102,15 +106,15 @@ def register():
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash("That username already exists.")
-            return render_template("register.html", username="")
+            return render_template("register.html", username="", user=getUsername())
         
         if len(username) == 0:
             flash("Your undername can't be blank.")
-            return render_template("register.html", username="")
+            return render_template("register.html", username="", user=getUsername())
 
         if password != verify:
             flash("Your password fields don't match.")
-            return render_template("register.html", username=username)
+            return render_template("register.html", username=username, user=getUsername())
         
         new_user = User(username, password)
         db.session.add(new_user)
@@ -119,7 +123,7 @@ def register():
 
         return redirect("/")
 
-    return render_template("register.html", username="")
+    return render_template("register.html", username="", user=getUsername())
 
 @app.route("/logoff.html", methods=["GET"])
 def logoff():
@@ -131,16 +135,16 @@ def index(): #TODO fix this nonsense
     
     users = User.query.all()
 
-    return render_template("home.html", users=users)
+    return render_template("home.html", users=users, user=getUsername())
 
 @app.before_request
 def validate():
     unallowed_if_loggedout = ["/newpost.html", "/logoff.html"]
-    if "email" not in session and request.endpoint in unallowed_if_loggedout:
+    if "username" not in session and request.endpoint in unallowed_if_loggedout:
         flash("Log in before trying to do that!")
         return redirect("/login.html")
     unallowed_if_loggedin = ["/login.html", "/register.html"]
-    if "email" in session and request.endpoint in unallowed_if_loggedin:
+    if "username" in session and request.endpoint in unallowed_if_loggedin:
         flash("Log out before trying to do that!")
         return redirect("/")
 
